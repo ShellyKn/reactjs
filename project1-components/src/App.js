@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const tempMovieData = [
   {
@@ -174,8 +174,9 @@ function WatchedMovieList({ watched }) {
   )
 }
 
-function WatchedMovie({ movie }) {
+function WatchedMovie({ movie, loading }) {
   return (
+    
     <li key={movie.imdbID}>
       <img src={movie.Poster} alt={`${movie.Title} poster`} />
       <h3>{movie.Title}</h3>
@@ -196,9 +197,38 @@ function WatchedMovie({ movie }) {
     </li>
   )
 }
+function Loading(){
+  return(
+    <p className="loader">Loading...</p>
+  )
+}
+
+const KEY = "aded0cab";
 export default function App() {
-  const [movies, setMovies] = useState(tempMovieData);
-  const [watched, setWatched] = useState(tempWatchedData);
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+  const [isloading, setisLoading] = useState(false);
+  const query = "interstellar";
+
+  useEffect(function (){
+    try{
+      async function fetchMovies() {
+        setisLoading(true);
+        const res = await fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=${query}`)
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error ("Something went wrong with fetching movies");
+        }
+        setMovies(data.Search);
+        setisLoading(false);
+      }
+      fetchMovies();
+    }catch (err){
+      console.log(err.message);
+    }
+    
+  },[]);
+
   return (
     <>
       <Navbar>
@@ -207,7 +237,7 @@ export default function App() {
       </Navbar>
       <Main>
         <Box>
-          <MovieList movies={movies} />
+          {isloading ? <Loading/> :<MovieList movies={movies} />}
         </Box>
         <Box>
           <Summary watched={watched} />
